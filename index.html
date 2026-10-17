@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maquette Atelier — générateur de maquettes (mockups) en vraie perspective, dans le navigateur</title>
+  <meta name="description" content="Générateur de maquettes gratuit et libre : affiche encadrée, cartes de visite, flyer A4, livre, téléphone, ordinateur, publication, boîte, tote bag, panneau 4×3. Scènes dessinées par le code, vraie perspective, export PNG 4K. Vos images restent sur votre appareil.">
+  <meta name="theme-color" content="#121418">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#viewer" data-i18n="skip"></a>
+  <!-- ===================================================== header -->
+  <header class="top">
+    <div class="brand">
+      <img src="icons/icon.svg" alt="" width="40" height="40">
+      <div>
+        <h1>Maquette Atelier <span class="tf" lang="kab-Tfng" aria-hidden="true">ⴰⵎⴻⴷⵢⴰ</span></h1>
+        <p data-i18n="tagline"></p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <label class="sr" for="lang" data-i18n="language"></label>
+      <select id="lang" aria-label="Langue / Language / Tutlayt">
+        <option value="fr">Français</option><option value="en">English</option><option value="kab">Taqbaylit</option>
+      </select>
+      <label class="check" id="tfngWrap" hidden><input type="checkbox" id="tfng"> <span data-i18n="tifinagh"></span> ⵣ</label>
+      <button class="btn icon" id="themeBtn" type="button" data-i18n-attr="aria-label:uiTheme;title:uiTheme">◐</button>
+      <button class="btn icon" id="helpBtn" type="button" data-i18n-attr="aria-label:help;title:help">?</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ===================================================== preview -->
+    <section class="work" aria-labelledby="viewTitle">
+      <h2 id="viewTitle" class="sr" data-i18n="preview"></h2>
+      <div class="toolbar">
+        <button class="btn" id="freeBtn" type="button" aria-pressed="false"><svg class="ico" aria-hidden="true" viewBox="0 0 16 16" width="14" height="14"><path d="M3 4 L13 2 L14 13 L2 12 Z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="3" cy="4" r="1.8" fill="currentColor"/><circle cx="13" cy="2" r="1.8" fill="currentColor"/><circle cx="14" cy="13" r="1.8" fill="currentColor"/><circle cx="2" cy="12" r="1.8" fill="currentColor"/></svg> <span data-i18n="freeMode"></span></button>
+        <button class="btn" id="resetPts" type="button" data-i18n="resetPts"></button>
+        <span class="mute small" id="editedTag" hidden data-i18n="edited"></span>
+        <span class="grow"></span>
+        <button class="btn primary" id="quickPng" type="button" data-i18n="png"></button>
+      </div>
+      <div class="viewer" id="viewer" tabindex="0" role="application" data-i18n-attr="aria-label:viewerLabel">
+        <canvas id="view"></canvas>
+        <div class="drop-hint" id="dropHint" hidden><span data-i18n="dropHere"></span></div>
+        <div class="busy" id="busy" hidden><span data-i18n="exporting"></span></div>
+      </div>
+      <p class="hint" id="freeHint" hidden data-i18n="freeHint"></p>
+      <p class="mute small" id="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ===================================================== controls -->
+    <aside class="panel" data-i18n-attr="aria-label:settings">
+      <details open>
+        <summary data-i18n="secDesigns"></summary>
+        <div class="row">
+          <button class="btn primary" id="addBtn" type="button"><span aria-hidden="true">⤒</span> <span data-i18n="addDesign"></span></button>
+          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg,image/*" multiple hidden>
+          <button class="btn" id="demoBtn" type="button" data-i18n="demoDesigns"></button>
+        </div>
+        <ul class="designs" id="designs"></ul>
+        <p class="hint" data-i18n="designsHint"></p>
+      </details>
+
+      <details open>
+        <summary data-i18n="secScene"></summary>
+        <div class="scenes" id="scenes" role="radiogroup" data-i18n-attr="aria-label:secScene"></div>
+        <h3 class="sub" data-i18n="sceneOpts"></h3>
+        <div id="sceneOpts"></div>
+      </details>
+
+      <details open>
+        <summary data-i18n="secSlots"></summary>
+        <div id="slots"></div>
+      </details>
+
+      <details open>
+        <summary data-i18n="secView"></summary>
+        <div class="field"><label for="s-aspect" data-i18n="aspect"></label>
+          <select id="s-aspect" data-set="aspect"><option value="4:3">4:3</option><option value="3:2">3:2</option><option value="16:9">16:9</option><option value="1:1">1:1</option><option value="4:5">4:5</option><option value="9:16">9:16</option></select></div>
+        <div class="field"><label for="s-zoom" data-i18n="zoom"></label><input type="range" id="s-zoom" data-set="zoom" min="50" max="170" step="1"><output for="s-zoom"></output></div>
+        <div class="field cam"><label for="s-yaw" data-i18n="yaw"></label><input type="range" id="s-yaw" data-set="yaw" min="-45" max="45" step="1"><output for="s-yaw"></output></div>
+        <div class="field cam"><label for="s-pitch" data-i18n="pitch"></label><input type="range" id="s-pitch" data-set="pitch" min="-30" max="30" step="1"><output for="s-pitch"></output></div>
+        <p class="hint" id="noCam" hidden data-i18n="noCam"></p>
+      </details>
+
+      <details open>
+        <summary data-i18n="secLook"></summary>
+        <p class="lbl" data-i18n="themeLabel"></p>
+        <div class="themes" id="themes"></div>
+        <div class="field"><label for="s-bgMode" data-i18n="bgMode"></label>
+          <select id="s-bgMode" data-set="bgMode"><option value="scene" data-i18n="bm_scene"></option><option value="solid" data-i18n="bm_solid"></option><option value="gradient" data-i18n="bm_gradient"></option><option value="none" data-i18n="bm_none"></option></select></div>
+        <div class="colors">
+          <label><input type="color" data-set="bg1"> <span data-i18n="bg1"></span></label>
+          <label><input type="color" data-set="bg2"> <span data-i18n="bg2"></span></label>
+          <label><input type="color" data-set="surface"> <span data-i18n="surface"></span></label>
+          <label><input type="color" data-set="paper"> <span data-i18n="paper"></span></label>
+          <label><input type="color" data-set="device"> <span data-i18n="device"></span></label>
+          <label><input type="color" data-set="accent"> <span data-i18n="accent"></span></label>
+        </div>
+        <div class="field"><label for="s-bgAngle" data-i18n="bgAngle"></label><input type="range" id="s-bgAngle" data-set="bgAngle" min="0" max="360" step="1"><output for="s-bgAngle"></output></div>
+        <div class="field"><label for="s-material" data-i18n="material"></label><select id="s-material" data-set="material"></select></div>
+        <div id="photoBox" hidden>
+          <p class="lbl" data-i18n="bgPhoto"></p>
+          <div class="row">
+            <button class="btn" id="photoBtn" type="button" data-i18n="bgPhotoBtn"></button>
+            <button class="btn small" id="photoClear" type="button" data-i18n="bgPhotoClear"></button>
+            <input type="file" id="photoInput" accept="image/*" hidden>
+          </div>
+          <p class="hint" data-i18n="bgPhotoHint"></p>
+        </div>
+      </details>
+
+      <details open>
+        <summary data-i18n="secLight"></summary>
+        <div class="field"><label for="s-light" data-i18n="light"></label><input type="range" id="s-light" data-set="light" min="-180" max="180" step="1"><output for="s-light"></output></div>
+        <div class="field"><label for="s-lightK" data-i18n="lightK"></label><input type="range" id="s-lightK" data-set="lightK" min="0" max="100" step="1"><output for="s-lightK"></output></div>
+        <div class="field"><label for="s-shadow" data-i18n="shadow"></label><input type="range" id="s-shadow" data-set="shadow" min="0" max="100" step="1"><output for="s-shadow"></output></div>
+        <div class="field"><label for="s-soft" data-i18n="soft"></label><input type="range" id="s-soft" data-set="soft" min="0" max="100" step="1"><output for="s-soft"></output></div>
+        <div class="field"><label for="s-gloss" data-i18n="gloss"></label><input type="range" id="s-gloss" data-set="gloss" min="0" max="100" step="1"><output for="s-gloss"></output></div>
+        <label class="check"><input type="checkbox" data-set="ink"> <span data-i18n="ink"></span></label>
+        <div class="field"><label for="s-paperTex" data-i18n="paperTex"></label><input type="range" id="s-paperTex" data-set="paperTex" min="0" max="100" step="1"><output for="s-paperTex"></output></div>
+        <div class="field"><label for="s-grain" data-i18n="grain"></label><input type="range" id="s-grain" data-set="grain" min="0" max="100" step="1"><output for="s-grain"></output></div>
+        <div class="field"><label for="s-vignette" data-i18n="vignette"></label><input type="range" id="s-vignette" data-set="vignette" min="0" max="100" step="1"><output for="s-vignette"></output></div>
+        <div class="field"><label for="s-deco" data-i18n="deco"></label><select id="s-deco" data-set="deco"><option value="none" data-i18n="deco_none"></option><option value="leaves" data-i18n="deco_leaves"></option><option value="blinds" data-i18n="deco_blinds"></option></select></div>
+        <div class="field"><label for="s-decoK" data-i18n="decoK"></label><input type="range" id="s-decoK" data-set="decoK" min="0" max="100" step="1"><output for="s-decoK"></output></div>
+      </details>
+
+      <details open>
+        <summary data-i18n="secExport"></summary>
+        <div class="field"><label for="s-exportSize" data-i18n="exportSize"></label>
+          <select id="s-exportSize" data-set="exportSize"><option value="1280">1280</option><option value="1920">1920 (Full HD)</option><option value="2560">2560</option><option value="3840">3840 (4K)</option></select></div>
+        <label class="check"><input type="checkbox" id="transparent"> <span data-i18n="transparent"></span></label>
+        <div class="row">
+          <button class="btn primary" id="exPng" type="button" data-i18n="png"></button>
+          <button class="btn" id="exJpg" type="button" data-i18n="jpg"></button>
+        </div>
+        <div class="field"><label for="s-jpgQ" data-i18n="jpgQ"></label><input type="range" id="s-jpgQ" data-set="jpgQ" min="50" max="100" step="1"><output for="s-jpgQ"></output></div>
+        <div class="row">
+          <button class="btn small" id="exJson" type="button" data-i18n="settingsJson"></button>
+          <button class="btn small" id="imJson" type="button" data-i18n="importJson"></button>
+          <input type="file" id="jsonInput" accept="application/json,.json" hidden>
+          <button class="btn small" id="copyLink" type="button" data-i18n="copyLink"></button>
+          <button class="btn small" id="resetAll" type="button" data-i18n="resetAll"></button>
+        </div>
+        <p class="hint" data-i18n="exportHint"></p>
+      </details>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <p><span data-i18n="privacy"></span> · <a href="https://github.com/salimadour31-boop/maquette-atelier" data-i18n="source"></a> · MIT</p>
+  </footer>
+
+  <dialog id="helpDlg" aria-labelledby="helpTitle">
+    <h2 id="helpTitle" data-i18n="help"></h2>
+    <div id="helpBody"></div>
+    <form method="dialog"><button class="btn primary" data-i18n="close"></button></form>
+  </dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/warp.js"></script>
+  <script src="js/textures.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
